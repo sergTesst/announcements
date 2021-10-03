@@ -1,0 +1,12 @@
+.App{
+
+	min-height:calc(100vh + 100%);
+	min-height:100vh;
+}
+
+@media screen and (min-width: 960px){
+  .App{
+    margin-left:calc(100vw - 100%)!important;
+    margin-left:0;
+  }
+}

@@ -1,0 +1,8 @@
+.readmore{
+	font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+
+	&:hover{
+		cursor: pointer;
+		text-decoration: underline;
+	}
+}
