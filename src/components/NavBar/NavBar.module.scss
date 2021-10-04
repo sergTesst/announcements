@@ -1,0 +1,32 @@
+
+.navContent {
+  display: flex;
+  justify-content: space-between;
+
+	.navLinks {
+		display: flex;
+	}
+
+}
+
+
+@media screen and (max-width: 510px) {
+	
+  .navContent {
+    justify-content: center;
+
+		.navLinks {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+	
+			&>*{
+				margin-top: 5px;
+			}
+		}
+
+
+  }
+
+
+}

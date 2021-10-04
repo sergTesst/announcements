@@ -10,4 +10,8 @@ export const apiName = '/fakeApi';
 export const postName = 'posts';
 
 export const postsRoute = `${apiName}/${postName}`;
-export const singlePostRoute = `${postsRoute}/single/:postId`;
+
+export const singlePostPath = `/single/:postId`;
+export const editPostPath = `/edit/:postId`;
+
+export const singlePostRoute = `${postsRoute}${singlePostPath}`;

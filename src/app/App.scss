@@ -2,6 +2,20 @@
 
 	min-height:calc(100vh + 100%);
 	min-height:100vh;
+
+
+  @media (max-width: 768px){
+    .order-sm-max-1 {
+      order: 1 !important;
+    }
+    .order-sm-max-2 {
+      order: 2 !important;
+    }
+  }
+
+  .hoverable:hover{
+    cursor: pointer;
+  }
 }
 
 @media screen and (min-width: 960px){
@@ -10,3 +24,5 @@
     margin-left:0;
   }
 }
+
+

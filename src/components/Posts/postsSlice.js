@@ -8,11 +8,19 @@ import {
 import {client} from '../../api/client';
 import {
 	StatusData, 
-	postsRoute
+	postsRoute,
+	singlePostRoute
 } from '../../api/ApiRoutes.js';
 
+
+const sliceName = 'posts';
+
 const actionTypes = {
-	fetchPosts:'posts/fetchPosts',
+	fetchPosts:`${sliceName}/fetchPosts`,
+	fetchSinglePost:`${sliceName}/fetchSinglePost`,
+	addNewPost:`${sliceName}/addNewPost`,
+	updatePost: `${sliceName}/updatePost`,
+	deletePost: `${sliceName}/deletePost`,
 
 }
 
@@ -33,6 +41,49 @@ export const fetchPosts = createAsyncThunk(
   }
 );
 
+
+export const fetchSinglePost = createAsyncThunk(
+	actionTypes.fetchSinglePost,
+	async ({postId}) => {
+
+		const url = singlePostRoute.replace(':postId', postId);
+
+		const response = await client.get(url);
+
+    const { fetchedPost, allPostsLength } = response;
+
+    return { fetchedPost, allPostsLength };
+	}
+);
+
+export const addNewPost = createAsyncThunk(
+	actionTypes.addNewPost,
+	async(initialPost)=>{
+
+		const response  = await client.post(postsRoute,{post:initialPost});
+		return response.post;
+});
+
+export const updatePost = createAsyncThunk(
+	actionTypes.updatePost,
+	async({postToUpdate, postId})=>{
+
+		const response  = await client.update(`${postsRoute}/${postId}`,{post:postToUpdate});
+		debugger;
+		const {post} = response;
+		return {id:post.id, changes: {...post}};
+});
+
+export const deletePost = createAsyncThunk(
+	actionTypes.deletePost,
+	async({postId})=>{
+
+		const response  = await client.delete(`${postsRoute}/${postId}`);
+		debugger;
+		return response.postId;
+});
+
+
 const postsAdapter = createEntityAdapter({});
 const FetchIncrement = 5;
 
@@ -42,7 +93,9 @@ const initialState = postsAdapter.getInitialState({
   fetchedAllEntitiesLength: 0,
   status: StatusData.idle,
   error: null,
-
+	
+	statusSinglePost:StatusData.idle,
+	
   searchQuery: "",
   fetchFrom: 0,
   fetchTo: FetchIncrement,
@@ -67,7 +120,7 @@ function queryIsNotEqualStateSearchQuery(query, state){
 
 const postsSlice = createSlice({
 
-	name:'posts',
+	name:sliceName,
 	initialState:initialState,
 
 	reducers:{
@@ -122,22 +175,63 @@ const postsSlice = createSlice({
 
 	extraReducers:{
     [fetchPosts.pending]: (state, action) => {
-      state.status = StatusData.loading;
+      setLoading(state, "status");
     },
     [fetchPosts.rejected]: (state, action) => {
-      state.status = StatusData.failed;
+      setFailed(state, "status");
     },
 		[fetchPosts.fulfilled]: (state, action) => {
-      state.status = StatusData.succeeded;
+      setSucceeded(state, "status");
       const { posts, allPostsLength } = action.payload;
 
       state.fetchedAllEntitiesLength = allPostsLength;
 
       postsAdapter.upsertMany(state, posts);
     },
+		
+    [fetchSinglePost.pending]: (state, action) => {
+      setLoading(state,"statusSinglePost");
+    },
+    [fetchSinglePost.rejected]: (state, action) => {
+      setIdle(state,"statusSinglePost");
+    },
+		[fetchSinglePost.fulfilled]:(state, action)=>{
+			setSucceeded(state,"statusSinglePost");
+
+			const { fetchedPost, allPostsLength } = action.payload;
+			state.fetchedAllEntitiesLength = allPostsLength;
+			postsAdapter.upsertOne(state, fetchedPost);
+		},
+		[addNewPost.fulfilled]:(state,action)=>{
+
+			postsAdapter.addOne(state, action.payload);
+		},
+
+		[updatePost.fulfilled]:(state, action) => {
+
+			postsAdapter.updateOne(state, action.payload);
+		},
+
+		[deletePost.fulfilled]:(state, action) => {
+
+			postsAdapter.removeOne(state, action.payload);
+		},
 
 	}
 })
+
+function setIdle(state, statusToSet){
+	state[`${statusToSet}`] = StatusData.idle;
+}
+function setLoading(state, statusToSet){
+	state[`${statusToSet}`] = StatusData.loading;
+}
+function setFailed(state, statusToSet){
+	state[`${statusToSet}`] = StatusData.failed;
+}
+function setSucceeded(state, statusToSet){
+	state[`${statusToSet}`] = StatusData.succeeded;
+}
 
 export default postsSlice.reducer;
 
@@ -158,6 +252,8 @@ export const {
 } = postsAdapter.getSelectors((state) => state.posts);
 
 export const selectPostsStatus = state => state.posts.status;
+
+export const selectSinglePostStatus = state => state.posts.statusSinglePost;
 
 export const selectFetchedAllPostsLength = (state) =>
   state.posts.fetchedAllEntitiesLength;

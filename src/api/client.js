@@ -15,8 +15,10 @@ export async function client(endpoint, { body, ...customConfig } = {}) {
     config.body = JSON.stringify(body)
   }
 
-  let data;
+	console.log('client config', config);
+	console.log('client endpoint', endpoint);
 
+  let data;
   try {
     const response = await window.fetch(endpoint, config)
     data = await response.json()
@@ -40,13 +42,10 @@ client.post = function (endpoint, body, customConfig = {}) {
   return client(endpoint, { ...customConfig, body })
 }
 
-client.update = function (endpoint, updates){
-  return client(endpoint,{
-    method:'PUT',
-    body:updates
-  })
+client.update = function (endpoint, body, customConfig = {}){
+  return client(endpoint,{ method:'PUT', ...customConfig, body })
 }
 
-client.delete = function (endpoint){
-  return client(endpoint,{method:'DELETE'})
+client.delete = function (endpoint, customConfig = {}){
+  return client(endpoint,{method:'DELETE',...customConfig})
 }

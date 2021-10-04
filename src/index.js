@@ -14,8 +14,6 @@ if(typeof makeServer ==='function'){
   makeServer();
 }
 
-store.dispatch(fetchPosts({from:0, to:5}));
-
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={store}>
