@@ -28,7 +28,7 @@ function App() {
           <div className="container-fluid m-0 p-0">
             <Navbar />
             
-            <div className="container-sm" style={{marginTop:'45px'}}>
+            <div className="container-sm" style={{marginTop:'65px'}}>
             
               <Switch>
                 <Route
@@ -54,6 +54,7 @@ function App() {
                           className="sticky-sm-top rounded p-2 shadow"
                           style={{
                             background: "#fefefe",
+                            top:'45px'
                           }}
                         >
                           <AddPostForm></AddPostForm>

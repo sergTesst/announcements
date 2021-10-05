@@ -27,20 +27,36 @@ const actionTypes = {
 export const fetchPosts = createAsyncThunk(
   actionTypes.fetchPosts,
   async ({ from, to }, { getState }) => {
-      
-    const response = await client.get(postsRoute, {
-      headers: {
-        from: from,
-        to: to,
-      },
-    });
+    
+		const { searchQuery } = getState().posts;
+
+		let response;
+
+		if(searchQuery === ''){
+
+			response = await client.get(postsRoute, {
+				headers: {
+					from: from,
+					to: to,
+				},
+			});
+			
+		}else{
+
+			response = await client.get(`${postsRoute}/get/${searchQuery}`, {
+				headers: {
+					from: from,
+					to: to,
+				},
+			});
+
+		}
 
     const { posts, allPostsLength } = response;
 
     return { posts, allPostsLength };
   }
 );
-
 
 export const fetchSinglePost = createAsyncThunk(
 	actionTypes.fetchSinglePost,
@@ -58,10 +74,15 @@ export const fetchSinglePost = createAsyncThunk(
 
 export const addNewPost = createAsyncThunk(
 	actionTypes.addNewPost,
-	async(initialPost)=>{
+	async(initialPost , {getState})=>{
 
-		const response  = await client.post(postsRoute,{post:initialPost});
-		return response.post;
+		const { searchQuery } = getState().posts;
+
+		const response  = await client.post(postsRoute,{post:initialPost, query:searchQuery });
+		
+		const { fetchedPost, allPostsLength } = response;
+
+    return { fetchedPost, allPostsLength };
 });
 
 export const updatePost = createAsyncThunk(
@@ -69,18 +90,22 @@ export const updatePost = createAsyncThunk(
 	async({postToUpdate, postId})=>{
 
 		const response  = await client.update(`${postsRoute}/${postId}`,{post:postToUpdate});
-		debugger;
+
 		const {post} = response;
 		return {id:post.id, changes: {...post}};
 });
 
 export const deletePost = createAsyncThunk(
 	actionTypes.deletePost,
-	async({postId})=>{
+	async({postId}, {getState})=>{
 
-		const response  = await client.delete(`${postsRoute}/${postId}`);
-		debugger;
-		return response.postId;
+		const { searchQuery } = getState().posts;
+
+		const response  = await client.post(`${postsRoute}/delete/${postId}`,{query:searchQuery});
+
+		const { deletedPostId, allPostsLength } = response;
+
+    return { deletedPostId, allPostsLength };
 });
 
 
@@ -107,10 +132,10 @@ const initialState = postsAdapter.getInitialState({
 
 });
 
-function queryIsNotEqualStateSearchQuery(query, state){
+const queryIsNotEqualStateSearchQuery = (query, state) => {
 
 	if(query !== state.searchQuery){
-		debugger;
+
 		state.fetchFrom = 0;
 		state.fetchTo = FetchIncrement;
 		return true;
@@ -155,16 +180,18 @@ const postsSlice = createSlice({
 		removeSearchRelatedEntities(state, action){
 
 			postsAdapter.removeAll(state);
-			state.searchQuery = '';
-			state.fetchedAllEntitiesLength = 0;
-			state.fetchFrom = 0;
-			state.fetchTo = FetchIncrement;
-			state.status = StatusData.idle;
-			state.error = null;
-			state.searchedTitlesAndIds = [];
 
+			state.fetchedAllEntitiesLength =  0;
+			state.status =  StatusData.idle;
+			state.error =  null;
+			state.statusSinglePost = StatusData.idle;
+			state.searchQuery =  "";
+			state.fetchFrom =  0;
+			state.fetchTo =  FetchIncrement;
+			state.searchedTitlesAndIds =  [];
 			state.selectedPostId = null;
 			state.similarEntities = {};
+
 		}, 
 
 		//dispatch this action when leaving currentPost or viewing other post
@@ -199,12 +226,18 @@ const postsSlice = createSlice({
 			setSucceeded(state,"statusSinglePost");
 
 			const { fetchedPost, allPostsLength } = action.payload;
+
 			state.fetchedAllEntitiesLength = allPostsLength;
+
 			postsAdapter.upsertOne(state, fetchedPost);
 		},
 		[addNewPost.fulfilled]:(state,action)=>{
+			
+			const { fetchedPost, allPostsLength } = action.payload;
 
-			postsAdapter.addOne(state, action.payload);
+			state.fetchedAllEntitiesLength = allPostsLength;
+
+			postsAdapter.addOne(state, fetchedPost);
 		},
 
 		[updatePost.fulfilled]:(state, action) => {
@@ -213,8 +246,11 @@ const postsSlice = createSlice({
 		},
 
 		[deletePost.fulfilled]:(state, action) => {
+			
+			const { deletedPostId, allPostsLength } = action.payload;
+			state.fetchedAllEntitiesLength = allPostsLength;
 
-			postsAdapter.removeOne(state, action.payload);
+			postsAdapter.removeOne(state, deletedPostId);
 		},
 
 	}

@@ -25,16 +25,49 @@ export default function makeServer(environment = "development") {
 			this.namespace = "/fakeApi";
 			const server = this;
 
+
 			this.get("/posts", (schema, req) => {
+
         const { from, to } = req.requestHeaders;
 
         let allPosts = schema.posts.all();
 
-        const resultPosts = allPosts.models.slice(from, to);
+				let allPostsModels = allPosts.models;
+
+        let resultPosts = allPostsModels.slice(from, to);
 
         return {
           posts: resultPosts,
-          allPostsLength: allPosts.length,
+          allPostsLength: allPostsModels.length,
+        };
+      });
+
+
+			this.get("/posts/get/:query", (schema, req) => {
+
+				const query = req.params["query"];
+
+        const { from, to } = req.requestHeaders;
+
+        let allPosts = schema.posts.all();
+
+				let allPostsModels = allPosts.models;
+
+				allPostsModels = allPostsModels.filter((post)=>{
+
+					const normalizedPostTitle = post.title.toLocaleLowerCase();
+					const normalizedQuery = query.toLocaleLowerCase();
+
+					const titleIncludes =  normalizedPostTitle.includes(normalizedQuery);						
+					return titleIncludes;
+
+				});
+
+        let resultPosts = allPostsModels.slice(from, to);
+
+        return {
+          posts: resultPosts,
+          allPostsLength: allPostsModels.length,
         };
       });
 
@@ -56,12 +89,26 @@ export default function makeServer(environment = "development") {
 				const data = this.normalizedRequestAttrs()
 				data.date = new Date().toISOString()
 			
-				const result = server.create('post', data)
-				return result
+				const result = server.create('post', data);
+
+				const allPosts = schema.posts.all();
+
+				let allPostsModels = allPosts.models;
+
+				const { query } = JSON.parse(req.requestBody);
+				if(query!==''){
+					allPostsModels = countPostsForQury(allPostsModels, query);
+				}
+			
+        return {
+          fetchedPost: result,
+          allPostsLength: allPostsModels.length,
+        };
+
 			});
 
 			this.put('/posts/:postId', function(schema, req){
-				debugger;
+
 				const postId = req.params["postId"];
 				let post = schema.posts.find(postId);
 				if (!post) throw new Error(`can not find post with ${postId}`);
@@ -75,14 +122,26 @@ export default function makeServer(environment = "development") {
 				return post;
 			});
 
-			this.delete('/posts/:postId', function(schema, req){
-				debugger;
+			this.post('/posts/delete/:postId', function(schema, req){
 
 				const postId = req.params["postId"];
 				let post = schema.posts.find(postId);
 				if (!post) throw new Error(`can not find post with ${postId}`);
 				post.destroy();
-				return {postId};
+
+				const allPosts = schema.posts.all();
+
+				let allPostsModels = allPosts.models;
+				
+				const { query } = JSON.parse(req.requestBody);
+				if(query!==''){
+					allPostsModels = countPostsForQury(allPostsModels, query);
+				}
+
+        return {
+          deletedPostId:postId,
+          allPostsLength: allPostsModels.length,
+        };
 			})
 
 			
@@ -113,10 +172,25 @@ export default function makeServer(environment = "development") {
     },
 
 		seeds(server){
-			server.createList('post',10);
+			server.createList('post',100);
 			server.create('post',{id:'knownId'});
 		}
 
-
 	})
+}
+
+function countPostsForQury(allPostsModels, query){
+
+	let filteredPostModels = allPostsModels.filter((post)=>{
+
+		const normalizedPostTitle = post.title.toLocaleLowerCase();
+		const normalizedQuery = query.toLocaleLowerCase();
+
+		const titleIncludes =  normalizedPostTitle.includes(normalizedQuery);						
+		return titleIncludes;
+
+	});
+
+	return filteredPostModels;
+
 }

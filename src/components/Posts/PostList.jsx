@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useRef } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router-dom";
 
@@ -11,37 +11,33 @@ import {
   selectSearchQuery,
   selectFromAndToForPagination,
   deletePost,
+  changePaginationPropsForSearchQuery,
+  changePostsStatusToStartFetching,
 } from "./postsSlice";
 
 import { StatusData } from "../../api/ApiRoutes";
 import { TimeAgo } from "../helperComponents/TimeAgo";
-import { useLoadingStatusToRenderLoader } from "./customHooksForPosts";
+
+import {
+  useLoadingStatusToRenderLoader,
+  useStatusAndArrOfIdsToFetchData,
+  scrollHandlerWithCallBack,
+  useLoadingStatusToAddOrRemoveScrollListeners,
+} from "./customHooksForPosts";
+
 import { ReadMoreText } from "../helperComponents/ReadMoreText.jsx";
 
 import { singlePostPath, editPostPath } from "../../api/ApiRoutes";
 
+import { atTheBottom } from "./helpers.js";
+
 const PostsListFetchPostsErrorMessage =
   "There is an error occurred. Try again later.";
 
-export const PostsList = ({ themeClasses }) => {
-  const dispatch = useDispatch();
-
-  const postsIds = useSelector((state) => selectPostsIds(state));
-  const postsStatus = useSelector(selectPostsStatus);
-
-  const allFetchedPostsLength = useSelector(selectFetchedAllPostsLength);
-  const fromAndTo = useSelector((state) => selectFromAndToForPagination(state));
-
-  useEffect(() => {
-    if (postsStatus === StatusData.idle) {
-      dispatch(fetchPosts({ from: 0, to: 5 }));
-    }
-  }, [postsStatus, dispatch]);
-
-  const { statusPostLoadingData } = useLoadingStatusToRenderLoader(postsStatus);
-
+const useToggleActionsHandler = () => {
   const isMenuShown = useRef(false);
   const currentMenuElem = useRef(null);
+
   const toggleActionsHandler = (e) => {
     let nextElSibling = e.target["nextElementSibling"];
 
@@ -70,25 +66,80 @@ export const PostsList = ({ themeClasses }) => {
     }
   };
 
-  let postsRenderedContent = null;
-  if (postsStatus === StatusData.succeeded) {
-    postsRenderedContent = postsIds.map((postId) => {
-      return (
-        <PostExcerpt
-          toggleActionsHandler={toggleActionsHandler}
-          themeClasses={themeClasses}
-          key={postId}
-          postId={postId}
-        ></PostExcerpt>
-      );
-    });
-  } else if (postsStatus === StatusData.failed) {
+  return { toggleActionsHandler };
+};
+
+export const PostsList = ({ themeClasses }) => {
+  const dispatch = useDispatch();
+
+  const postsIds = useSelector((state) => selectPostsIds(state));
+  const postsStatus = useSelector(selectPostsStatus);
+
+  const allFetchedPostsLength = useSelector(selectFetchedAllPostsLength);
+  const fromAndTo = useSelector((state) => selectFromAndToForPagination(state));
+
+  const query = useSelector(selectSearchQuery);
+
+  const handleScroll = scrollHandlerWithCallBack(atTheBottom, () => {
+    dispatch(changePostsStatusToStartFetching({ newStatus: StatusData.idle }));
+  });
+
+  useLoadingStatusToAddOrRemoveScrollListeners({
+    itemIdsArr: postsIds,
+    allItemsLength: allFetchedPostsLength,
+    handler: handleScroll,
+  });
+
+  useStatusAndArrOfIdsToFetchData(
+    {
+      itemsStatus: postsStatus,
+      idsArr: postsIds,
+      allItemsLength: allFetchedPostsLength,
+      scrollHandler: handleScroll,
+    },
+    async function fetchPostsAndSetPagination() {
+      dispatch(fetchPosts({ ...fromAndTo }));
+      dispatch(changePaginationPropsForSearchQuery({ query: query }));
+    }
+  );
+
+  const { statusPostLoadingData } = useLoadingStatusToRenderLoader(postsStatus);
+
+  const { toggleActionsHandler } = useToggleActionsHandler();
+
+  let postsRenderedContent;
+
+  if (postsStatus === StatusData.failed) {
     postsRenderedContent = (
       <div className="alert alert-danger">
         {PostsListFetchPostsErrorMessage}
       </div>
     );
+    return (
+      <React.Fragment>
+        {postsRenderedContent}
+      </React.Fragment>
+    )
   }
+
+  if(postsIds.length === 0 && postsStatus === StatusData.succeeded){
+    return (
+      <React.Fragment>
+        <h3>no search results for {query}. Try changing the search words</h3>
+      </React.Fragment>
+    )
+  }
+
+  postsRenderedContent = postsIds.map((postId) => {
+    return (
+      <PostExcerpt
+        toggleActionsHandler={toggleActionsHandler}
+        themeClasses={themeClasses}
+        key={postId}
+        postId={postId}
+      ></PostExcerpt>
+    );
+  });
 
   return (
     <React.Fragment>
