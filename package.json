@@ -11,6 +11,7 @@
     "classnames": "^2.3.1",
     "date-fns": "^2.24.0",
     "faker": "^5.5.3",
+    "lodash": "^4.17.21",
     "miragejs": "^0.1.42",
     "node-sass": "^6.0.1",
     "react": "^17.0.2",

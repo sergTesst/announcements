@@ -6,33 +6,34 @@ import {
   // hasMany,
   // association,
   RestSerializer,
-
 } from "miragejs";
 
 import { nanoid } from "@reduxjs/toolkit";
 
 import faker from "faker";
 
-import { sentence, paragraph, article } from 'txtgen'
+import {
+  sentence,
+  paragraph,
+  // article
+} from "txtgen";
 
+import _ from "lodash";
 
 export default function makeServer(environment = "development") {
-	return new Server({
+  return new Server({
+    environment: environment,
 
-		environment: environment,
+    routes() {
+      this.namespace = "/fakeApi";
+      const server = this;
 
-		routes(){
-			this.namespace = "/fakeApi";
-			const server = this;
-
-
-			this.get("/posts", (schema, req) => {
-
+      this.get("/posts", (schema, req) => {
         const { from, to } = req.requestHeaders;
 
         let allPosts = schema.posts.all();
 
-				let allPostsModels = allPosts.models;
+        let allPostsModels = allPosts.models;
 
         let resultPosts = allPostsModels.slice(from, to);
 
@@ -42,26 +43,22 @@ export default function makeServer(environment = "development") {
         };
       });
 
-
-			this.get("/posts/get/:query", (schema, req) => {
-
-				const query = req.params["query"];
+      this.get("/posts/get/:query", (schema, req) => {
+        const query = req.params["query"];
 
         const { from, to } = req.requestHeaders;
 
         let allPosts = schema.posts.all();
 
-				let allPostsModels = allPosts.models;
+        let allPostsModels = allPosts.models;
 
-				allPostsModels = allPostsModels.filter((post)=>{
+        allPostsModels = allPostsModels.filter((post) => {
+          const normalizedPostTitle = post.title.toLocaleLowerCase();
+          const normalizedQuery = query.toLocaleLowerCase();
 
-					const normalizedPostTitle = post.title.toLocaleLowerCase();
-					const normalizedQuery = query.toLocaleLowerCase();
-
-					const titleIncludes =  normalizedPostTitle.includes(normalizedQuery);						
-					return titleIncludes;
-
-				});
+          const titleIncludes = normalizedPostTitle.includes(normalizedQuery);
+          return titleIncludes;
+        });
 
         let resultPosts = allPostsModels.slice(from, to);
 
@@ -71,126 +68,203 @@ export default function makeServer(environment = "development") {
         };
       });
 
-			this.get("/posts/single/:postId", (schema, req) => {
+      this.get("/posts/similar/:postId", (schema, req) => {
 
+        const postId = req.params["postId"];
+        const { from, to } = req.requestHeaders;
+
+        const targetPost = schema.posts.find(postId);
+        if (!targetPost) throw new Error(`can not find post with ${postId}`);
+
+        let allPosts = schema.posts.all();
+        let allPostsModels = allPosts.models;
+
+        allPostsModels = allPostsModels
+          .filter((post) => post.id !== targetPost.id)
+          .filter((post) => {
+            const { intersectedTitleArr, intersectedDescriptionArr } =
+              getIntersectedTitleAndDescriptionArrFromTwoPosts(
+                post,
+                targetPost
+              );
+
+            return (
+              intersectedTitleArr.length > 0 &&
+              intersectedDescriptionArr.length > 0
+            );
+          })
+          .sort((postA, postB) => {
+            const resA = getIntersectedTitleAndDescriptionArrFromTwoPosts(
+              postA,
+              targetPost
+            );
+            const resB = getIntersectedTitleAndDescriptionArrFromTwoPosts(
+              postB,
+              targetPost
+            );
+            return (
+              resB.intersectedDescriptionArr.length +
+              resB.intersectedTitleArr.length -
+              (resA.intersectedDescriptionArr.length +
+                resA.intersectedTitleArr.length)
+            );
+          });
+
+        let resultPosts = allPostsModels.slice(from, to)
+				// .map(post=>{
+
+				// 	const { intersectedTitleArr, intersectedDescriptionArr } = 
+				// 	getIntersectedTitleAndDescriptionArrFromTwoPosts(post, targetPost);
+
+				// 	return {
+				// 		post,
+				// 		similarTitleWordsArr:intersectedTitleArr,
+				// 		similarDescriptionWordsArr:intersectedDescriptionArr
+				// 	};
+				// });
+
+        return {
+          posts: resultPosts,
+          allPostsLength: allPostsModels.length,
+        };
+      });
+
+      this.get("/posts/single/:postId", (schema, req) => {
         const postId = req.params["postId"];
         const post = schema.posts.find(postId);
         if (!post) throw new Error(`can not find post with ${postId}`);
 
-				const allPosts = schema.posts.all();
+        const allPosts = schema.posts.all();
         return {
           fetchedPost: post,
           allPostsLength: allPosts.length,
         };
       });
 
-			this.post('/posts', function (schema, req) {
+      this.post("/posts", function (schema, req) {
+        const data = this.normalizedRequestAttrs();
+        data.date = new Date().toISOString();
 
-				const data = this.normalizedRequestAttrs()
-				data.date = new Date().toISOString()
-			
-				const result = server.create('post', data);
+        const result = server.create("post", data);
 
-				const allPosts = schema.posts.all();
+        const allPosts = schema.posts.all();
 
-				let allPostsModels = allPosts.models;
+        let allPostsModels = allPosts.models;
 
-				const { query } = JSON.parse(req.requestBody);
-				if(query!==''){
-					allPostsModels = countPostsForQury(allPostsModels, query);
-				}
-			
+        const { query } = JSON.parse(req.requestBody);
+        if (query !== "") {
+          allPostsModels = countPostsForQury(allPostsModels, query);
+        }
+
         return {
           fetchedPost: result,
           allPostsLength: allPostsModels.length,
         };
+      });
 
-			});
+      this.put("/posts/:postId", function (schema, req) {
+        const postId = req.params["postId"];
+        let post = schema.posts.find(postId);
+        if (!post) throw new Error(`can not find post with ${postId}`);
 
-			this.put('/posts/:postId', function(schema, req){
+        const data = this.normalizedRequestAttrs();
 
-				const postId = req.params["postId"];
-				let post = schema.posts.find(postId);
-				if (!post) throw new Error(`can not find post with ${postId}`);
+        if (postId !== data.id)
+          throw new Error(`can not update post with ${postId}`);
 
-				const data = this.normalizedRequestAttrs();
+        post.update({ ...data });
+        return post;
+      });
 
-				if(postId !== data.id)
-					throw new Error(`can not update post with ${postId}`);
+      this.post("/posts/delete/:postId", function (schema, req) {
+        const postId = req.params["postId"];
+        let post = schema.posts.find(postId);
+        if (!post) throw new Error(`can not find post with ${postId}`);
+        post.destroy();
 
-				post.update({...data});
-				return post;
-			});
+        const allPosts = schema.posts.all();
 
-			this.post('/posts/delete/:postId', function(schema, req){
+        let allPostsModels = allPosts.models;
 
-				const postId = req.params["postId"];
-				let post = schema.posts.find(postId);
-				if (!post) throw new Error(`can not find post with ${postId}`);
-				post.destroy();
-
-				const allPosts = schema.posts.all();
-
-				let allPostsModels = allPosts.models;
-				
-				const { query } = JSON.parse(req.requestBody);
-				if(query!==''){
-					allPostsModels = countPostsForQury(allPostsModels, query);
-				}
+        const { query } = JSON.parse(req.requestBody);
+        if (query !== "") {
+          allPostsModels = countPostsForQury(allPostsModels, query);
+        }
 
         return {
-          deletedPostId:postId,
+          deletedPostId: postId,
           allPostsLength: allPostsModels.length,
         };
-			})
-
-			
-
-		},
-		models:{
-			post:Model.extend({})
-		},
-		factories:{
-			post:Factory.extend({
-				id() {
+      });
+    },
+    models: {
+      post: Model.extend({}),
+    },
+    factories: {
+      post: Factory.extend({
+        id() {
           return nanoid();
         },
         date() {
           return faker.date.recent(3);
         },
-				title() {
+        title() {
           return sentence();
         },
-				description(){
-					return paragraph();
-				}
-			})
-		},
-		serializers: {
+        description() {
+          return paragraph();
+        },
+      }),
+    },
+    serializers: {
       application: RestSerializer,
-
     },
 
-		seeds(server){
-			server.createList('post',100);
-			server.create('post',{id:'knownId'});
-		}
-
-	})
+    seeds(server) {
+      server.createList("post", 100);
+      server.create("post", { id: "knownId" });
+    },
+  });
 }
 
-function countPostsForQury(allPostsModels, query){
+function countPostsForQury(allPostsModels, query) {
+  let filteredPostModels = allPostsModels.filter((post) => {
+    const normalizedPostTitle = post.title.toLocaleLowerCase();
+    const normalizedQuery = query.toLocaleLowerCase();
 
-	let filteredPostModels = allPostsModels.filter((post)=>{
+    const titleIncludes = normalizedPostTitle.includes(normalizedQuery);
+    return titleIncludes;
+  });
 
-		const normalizedPostTitle = post.title.toLocaleLowerCase();
-		const normalizedQuery = query.toLocaleLowerCase();
+  return filteredPostModels;
+}
 
-		const titleIncludes =  normalizedPostTitle.includes(normalizedQuery);						
-		return titleIncludes;
+function getIntersectionArrayOfTwoStrings(str1, str2) {
+  const intersectedArr = _.intersectionWith(
+    str1.split(" "),
+    str2.split(" "),
+    _.isEqual
+  );
+  return intersectedArr;
+}
 
-	});
+function getIntersectedTitleAndDescriptionArrFromTwoPosts(postA, postB) {
+  const normalizedPostTitle = postA.title.toLocaleLowerCase();
+  const normalizedPostDesc = postA.description.toLocaleLowerCase();
 
-	return filteredPostModels;
+  const normalizedTargetPostTitle = postB.title.toLocaleLowerCase();
 
+  const normalizedTargetPostDesc = postB.description.toLocaleLowerCase();
+
+  const intersectedTitleArr = getIntersectionArrayOfTwoStrings(
+    normalizedPostTitle,
+    normalizedTargetPostTitle
+  );
+
+  const intersectedDescriptionArr = getIntersectionArrayOfTwoStrings(
+    normalizedPostDesc,
+    normalizedTargetPostDesc
+  );
+
+  return { intersectedTitleArr, intersectedDescriptionArr };
 }
