@@ -1,4 +1,4 @@
-This project is build with React, using the Redux and Redux Toolkit.
+This project was built with React, using the Redux and Redux Toolkit.
 
 ## Available Scripts
 ### `npm start`
