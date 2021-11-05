@@ -29,7 +29,7 @@ import { ReadMoreText } from "../helperComponents/ReadMoreText.jsx";
 
 import { singlePostPath, editPostPath } from "../../api/ApiRoutes";
 
-import { atTheBottom } from "./helpers.js";
+import { atTheBottom } from "../../helpers/atTheBottom.js";
 
 const PostsListFetchPostsErrorMessage =
   "There is an error occurred. Try again later.";

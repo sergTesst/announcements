@@ -20,16 +20,12 @@ import { EditPostWrapper } from "../components/Posts/EditPostForm";
 function App() {
   return (
     <Router>
-      <div
-        className="wrapper"
-        // style={{ background: "#121212", color: "#e1e1e1" }}
-      >
+      <div className="wrapper">
         <div className="App">
           <div className="container-fluid m-0 p-0">
             <Navbar />
-            
-            <div className="container-sm" style={{marginTop:'65px'}}>
-            
+
+            <div className="container-sm" style={{ marginTop: "65px" }}>
               <Switch>
                 <Route
                   exact
@@ -40,13 +36,9 @@ function App() {
                         className={classNames(
                           "order-sm-max-2 posts-list col-md-8 rounded shadow"
                         )}
-                        // style={{ background: "#1d1d1d" }}
                         style={{ background: "#fefefe" }}
                       >
-                        <PostsList
-                          themeClasses="link-dark text-decoration-none"
-                          // themeClasses='link-light text-decoration-none'
-                        ></PostsList>
+                        <PostsList themeClasses="link-dark text-decoration-none"></PostsList>
                       </section>
 
                       <section className="order-sm-max-1 col-md-4 ">
@@ -54,7 +46,7 @@ function App() {
                           className="sticky-sm-top rounded p-2 shadow"
                           style={{
                             background: "#fefefe",
-                            top:'45px'
+                            top: "45px",
                           }}
                         >
                           <AddPostForm></AddPostForm>

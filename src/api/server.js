@@ -27,6 +27,7 @@ export default function makeServer(environment = "development") {
     routes() {
       this.namespace = "/fakeApi";
       const server = this;
+      server.logging = process.env.NODE_ENV === 'development'? true: false;
 
       this.get("/posts", (schema, req) => {
         const { from, to } = req.requestHeaders;

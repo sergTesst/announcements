@@ -1,11 +1,13 @@
 import { configureStore } from '@reduxjs/toolkit';
-import postsReducer from '../components/Posts/postsSlice'
+import postsReducer from '../components/Posts/postsSlice';
+
+import { logm } from '../helpers/custom-logger';
 
 const loggerMiddleware = storeAPI => next => action =>{
 
-  console.log('dispatching', action);
+  logm('dispatching', action);
   let result = next(action);
-  console.log('next state', storeAPI.getState());
+  logm('next state', storeAPI.getState());
   return result;
 
 }
