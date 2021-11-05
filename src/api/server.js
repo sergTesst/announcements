@@ -23,11 +23,11 @@ import _ from "lodash";
 export default function makeServer(environment = "development") {
   return new Server({
     environment: environment,
-    logging: process.env.NODE_ENV === 'development'? true: false,
 
     routes() {
       this.namespace = "/fakeApi";
       const server = this;
+      server.logging = process.env.NODE_ENV === 'development'? true: false;
 
       this.get("/posts", (schema, req) => {
         const { from, to } = req.requestHeaders;
