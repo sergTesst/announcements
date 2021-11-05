@@ -23,6 +23,7 @@ import _ from "lodash";
 export default function makeServer(environment = "development") {
   return new Server({
     environment: environment,
+    logging: process.env.NODE_ENV === 'development'? true: false,
 
     routes() {
       this.namespace = "/fakeApi";
