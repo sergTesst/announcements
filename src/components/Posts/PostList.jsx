@@ -115,19 +115,15 @@ export const PostsList = ({ themeClasses }) => {
         {PostsListFetchPostsErrorMessage}
       </div>
     );
-    return (
-      <React.Fragment>
-        {postsRenderedContent}
-      </React.Fragment>
-    )
+    return <React.Fragment>{postsRenderedContent}</React.Fragment>;
   }
 
-  if(postsIds.length === 0 && postsStatus === StatusData.succeeded){
+  if (postsIds.length === 0 && postsStatus === StatusData.succeeded) {
     return (
       <React.Fragment>
         <h3>no search results for {query}. Try changing the search words</h3>
       </React.Fragment>
-    )
+    );
   }
 
   postsRenderedContent = postsIds.map((postId) => {

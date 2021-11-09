@@ -1,8 +1,7 @@
-
 import { StatusData } from "../../api/ApiRoutes";
 import { Loader } from "../helperComponents/Loader";
-import {useEffect} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { logm } from "../../helpers/custom-logger";
 
 export const useLoadingStatusToRenderLoader = (trackingStatus) => {
@@ -16,9 +15,11 @@ export const useLoadingStatusToRenderLoader = (trackingStatus) => {
   return { statusPostLoadingData };
 };
 
-
-export const usePostIdToSelectOrFetchPost = ({ postId, postSelector, postFetcher }) => {
-
+export const usePostIdToSelectOrFetchPost = ({
+  postId,
+  postSelector,
+  postFetcher,
+}) => {
   const dispatch = useDispatch();
 
   const post = useSelector((state) => postSelector(state, postId));
@@ -27,11 +28,10 @@ export const usePostIdToSelectOrFetchPost = ({ postId, postSelector, postFetcher
     if (!post) {
       dispatch(postFetcher({ postId }));
     }
-  },[postId, dispatch, post, postFetcher]);
+  }, [postId, dispatch, post, postFetcher]);
 
   return post;
 };
-
 
 export const useStatusAndArrOfIdsToFetchData = (
   { itemsStatus, idsArr, allItemsLength, scrollHandler },
@@ -61,9 +61,9 @@ export const useStatusAndArrOfIdsToFetchData = (
       fetchCallBack();
     }
 
-    return ()=>{
-      logm('reset callback');
-    }
+    return () => {
+      logm("reset callback");
+    };
   }, [
     itemsStatus,
     idsArr.length,
@@ -81,12 +81,13 @@ export const scrollHandlerWithCallBack = (checkIfAtTheBottom, callback) => {
   };
 };
 
-
-export const useLoadingStatusToAddOrRemoveScrollListeners = ({itemIdsArr, allItemsLength, handler}) =>{
-
+export const useLoadingStatusToAddOrRemoveScrollListeners = ({
+  itemIdsArr,
+  allItemsLength,
+  handler,
+}) => {
   useEffect(() => {
-    const allSearchedPostsNotFetched =
-    itemIdsArr.length !== allItemsLength;
+    const allSearchedPostsNotFetched = itemIdsArr.length !== allItemsLength;
     const fetchedSomeSearchPosts = itemIdsArr.length > 0;
 
     if (allSearchedPostsNotFetched && fetchedSomeSearchPosts) {
@@ -103,4 +104,4 @@ export const useLoadingStatusToAddOrRemoveScrollListeners = ({itemIdsArr, allIte
       window.removeEventListener("scroll", handler);
     };
   });
-}
+};

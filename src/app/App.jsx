@@ -25,29 +25,24 @@ function App() {
           <div className="container-fluid m-0 p-0">
             <Navbar />
 
-            <div className="container-sm" style={{ marginTop: "65px" }}>
+            <div className="container-sm containerMarin" >
               <Switch>
                 <Route
                   exact
                   path="/"
                   render={() => (
-                    <div className="row">
-                      <section
-                        className={classNames(
-                          "order-sm-max-2 posts-list col-md-8 rounded shadow"
-                        )}
-                        style={{ background: "#fefefe" }}
-                      >
+                    <div className="row postContainer pt-4">
+
+                      <section className="order-sm-max-2 posts-list col-md-8 rounded shadow">
                         <PostsList themeClasses="link-dark text-decoration-none"></PostsList>
                       </section>
 
-                      <section className="order-sm-max-1 col-md-4 ">
+                      <section className="order-sm-max-1 col-md-4 p-0">
                         <div
-                          className="sticky-sm-top rounded p-2 shadow"
-                          style={{
-                            background: "#fefefe",
-                            top: "45px",
-                          }}
+                          className={classNames(
+                            "sticky-sm-top p-2 rounded  shadow addFormTop",
+                            "infoPart"
+                          )}
                         >
                           <AddPostForm></AddPostForm>
                         </div>
@@ -59,25 +54,14 @@ function App() {
                 <Route
                   exact
                   path={singlePostPath}
-                  render={() => (
-                    <div
-                      className="row shadow"
-                      // style={{ background: "#1d1d1d" }}
-                      style={{ background: "#fefefe" }}
-                    >
-                      <SinglePost></SinglePost>
-                    </div>
-                  )}
+                  render={() => <SinglePost></SinglePost>}
                 ></Route>
 
                 <Route
                   exact
                   path={editPostPath}
                   render={() => (
-                    <div
-                      className="row shadow"
-                      style={{ background: "#fefefe" }}
-                    >
+                    <div className="row shadow infoPart">
                       <EditPostWrapper></EditPostWrapper>
                     </div>
                   )}

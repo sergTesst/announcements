@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
 import { selectPostById } from "./postsSlice";
 
@@ -44,10 +44,11 @@ export const EditPostForm = ({ post }) => {
   const [description, setDescription] = useState(post.description);
 
   const [addRequestStatus, setAddRequestStatus] = useState(StatusData.idle);
-	const history  = useHistory();
+  const history = useHistory();
 
   const canSave =
-    ( Boolean(title !== post.title) || Boolean(description !== post.description)) &&
+    (Boolean(title !== post.title) ||
+      Boolean(description !== post.description)) &&
     addRequestStatus === StatusData.idle;
 
   const savePostClicked = async (e) => {
@@ -72,13 +73,12 @@ export const EditPostForm = ({ post }) => {
 
         setTitle("");
         setDescription("");
-			
       } catch (err) {
         console.error("Failed to save the announcement", err);
       } finally {
         setAddRequestStatus(StatusData.idle);
 
-				history.push(singlePostPath.replace(':postId', post.id));
+        history.push(singlePostPath.replace(":postId", post.id));
       }
     }
   };

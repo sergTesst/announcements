@@ -1,7 +1,11 @@
-
-
-export const PostForm = ({title, setTitle, description, setDescription, canSave, savePostClicked }) => {
-
+export const PostForm = ({
+  title,
+  setTitle,
+  description,
+  setDescription,
+  canSave,
+  savePostClicked,
+}) => {
   const onTitleChanged = (event) => {
     setTitle(event.target.value);
   };
@@ -38,7 +42,7 @@ export const PostForm = ({title, setTitle, description, setDescription, canSave,
       <div className="row justify-content-end mt-2">
         <div className="col-auto">
           <button
-          // text-white
+            // text-white
             className=" btn  border border-primary rounded "
             disabled={!canSave}
             onClick={savePostClicked}

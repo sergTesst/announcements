@@ -283,7 +283,6 @@ const postsSlice = createSlice({
         ...state.similarEntities,
         ...newEntities,
       };
-
     },
   },
 });
@@ -336,7 +335,8 @@ export const selectFromAndToForPagination = createSelector(
 );
 
 export const selectSimilarPosts = (state) => state.posts.similarEntities;
-export const selectSimilarPostsStatus = (state) => state.posts.similarEntitiesStatus;
+export const selectSimilarPostsStatus = (state) =>
+  state.posts.similarEntitiesStatus;
 
 export const selectSimilarPostsAllLength = (state) =>
   state.posts.similarEntitiesAllLength;

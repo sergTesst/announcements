@@ -1,10 +1,8 @@
 import { Link, useHistory } from "react-router-dom";
 
-import { useRef, useState } from "react";
+import React, { useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import classNames from "classnames";
-
-import { StatusData } from "../../api/ApiRoutes";
 
 import {
   removeSearchRelatedEntities,
@@ -12,18 +10,16 @@ import {
   selectFetchedAllPostsLength,
   selectSearchQuery,
 } from "../Posts/postsSlice.js";
-import React from "react";
+
+import { StatusData } from "../../api/ApiRoutes";
 
 export const Navbar = () => {
-
   const allPostsLength = useSelector(selectFetchedAllPostsLength);
-  
 
   return (
     <nav className="navbar navbar-expand-md navbar-light shadow bg-light fixed-top ">
       <div className="container">
         <div className="row w-100">
-          
           <div className="col-sm-3 col-12 d-flex justify-content-center">
             <Link
               className={classNames("link-dark text-decoration-none")}
@@ -41,7 +37,6 @@ export const Navbar = () => {
 };
 
 const SearchPart = () => {
-
   const dispatch = useDispatch();
 
   const [text, setText] = useState("");
@@ -101,7 +96,7 @@ const SearchPart = () => {
             className="btn border border-secondary"
             onClick={() => {
               dispatch(removeSearchRelatedEntities());
-              setText('');
+              setText("");
             }}
           >
             x

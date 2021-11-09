@@ -1,3 +1,5 @@
+$marginAndTopValue: 65px;
+
 .App{
 
 	min-height:calc(100vh + 100%);
@@ -13,8 +15,27 @@
     }
   }
 
+  .containerMarin{
+    margin-top: $marginAndTopValue;
+  }
+
+  .addFormTop{
+    top: $marginAndTopValue;
+  }
+
   .hoverable:hover{
     cursor: pointer;
+  }
+
+  .infoPart{
+    background: #fefefe
+  }
+
+  @media (min-width: 768px){
+    .postContainer{
+      flex-wrap: nowrap;
+      gap:0.5rem;
+    }
   }
 }
 

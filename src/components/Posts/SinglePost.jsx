@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 
 import { useParams } from "react-router";
 
-import {Link} from 'react-router-dom';
+import { Link } from "react-router-dom";
 
 import { useSelector, useDispatch } from "react-redux";
 
@@ -82,31 +82,34 @@ export const SinglePostWithSimilarPosts = ({ post }) => {
   });
 
   return (
-    <article className=" mb-1 p-1 ">
-      <div className="row ">
-        <div className="col-sm-7">
-          <PostView
-            post={post}
-            descriptionLength={post.description.length}
-            render={()=>{
-              return ( <h3>{post.title}</h3> )
-            }}
-          ></PostView>
-        </div>
-        <div className="col-sm-5">
-          <div className="row">
-            <div className="row">
-              <div className="col-12">
-                <h2>Similar announcements</h2>
-              </div>
-            </div>
+    <div className="row postContainer pt-4">
 
-            {similarPostsRenderedContent}
-            {statusPostLoadingData}
+      <section className="col-12 col-md-8 shadow rounded">
+        <PostView
+          post={post}
+          descriptionLength={post.description.length}
+          render={() => {
+            return <h3>{post.title}</h3>;
+          }}
+        ></PostView>
+      </section>
+
+      <section className="col-12 col-md-4 ">
+
+        <div className="row shadow rounded p-2">
+
+          <div className="row">
+            <div className="col-12">
+              <h2>Similar announcements</h2>
+            </div>
+            <hr />
           </div>
+
+          {similarPostsRenderedContent}
+          {statusPostLoadingData}
         </div>
-      </div>
-    </article>
+      </section>
+    </div>
   );
 };
 
@@ -120,8 +123,9 @@ export const SimilarPostExcerpt = ({ postId }) => {
       render={() => {
         return (
           <Link
-            className='link-dark text-decoration-none'
-            to={singlePostPath.replace(":postId", `${postId}`)}>
+            className="link-dark text-decoration-none"
+            to={singlePostPath.replace(":postId", `${postId}`)}
+          >
             <h3>{post.title}</h3>
           </Link>
         );

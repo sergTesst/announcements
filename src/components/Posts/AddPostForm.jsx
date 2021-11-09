@@ -1,12 +1,8 @@
 import React, { useState } from "react";
-
 import { useDispatch } from "react-redux";
-
 import { addNewPost } from "./postsSlice";
-
 import { unwrapResult } from "@reduxjs/toolkit";
 import { StatusData } from "../../api/ApiRoutes";
-
 import { PostForm } from "./PostForm";
 
 export const AddPostForm = () => {

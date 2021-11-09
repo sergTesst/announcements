@@ -27,7 +27,7 @@ export default function makeServer(environment = "development") {
     routes() {
       this.namespace = "/fakeApi";
       const server = this;
-      server.logging = process.env.NODE_ENV === 'development'? true: false;
+      server.logging = process.env.NODE_ENV === "development" ? true : false;
 
       this.get("/posts", (schema, req) => {
         const { from, to } = req.requestHeaders;
@@ -70,7 +70,6 @@ export default function makeServer(environment = "development") {
       });
 
       this.get("/posts/similar/:postId", (schema, req) => {
-
         const postId = req.params["postId"];
         const { from, to } = req.requestHeaders;
 
@@ -111,19 +110,7 @@ export default function makeServer(environment = "development") {
             );
           });
 
-        let resultPosts = allPostsModels.slice(from, to)
-				// .map(post=>{
-
-				// 	const { intersectedTitleArr, intersectedDescriptionArr } = 
-				// 	getIntersectedTitleAndDescriptionArrFromTwoPosts(post, targetPost);
-
-				// 	return {
-				// 		post,
-				// 		similarTitleWordsArr:intersectedTitleArr,
-				// 		similarDescriptionWordsArr:intersectedDescriptionArr
-				// 	};
-				// });
-
+        let resultPosts = allPostsModels.slice(from, to);
         return {
           posts: resultPosts,
           allPostsLength: allPostsModels.length,
